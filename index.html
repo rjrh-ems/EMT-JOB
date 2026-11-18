@@ -278,9 +278,14 @@
 
             <!-- 3. ผู้แจ้งให้ทำ -->
             <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs">
-              <label for="requester-select" class="block text-sm font-semibold text-slate-800 mb-2">
-                ผู้แจ้งให้ทำ <span class="text-rose-500">*</span>
-              </label>
+              <div class="flex items-center justify-between flex-wrap gap-1 mb-2">
+                <label for="requester-select" class="block text-sm font-semibold text-slate-800">
+                  ผู้แจ้งให้ทำ <span id="requester-required-star" class="text-rose-500">*</span>
+                </label>
+                <span id="requester-optional-badge" class="hidden px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-teal-50 text-teal-700 border border-teal-200">
+                  ไม่บังคับสำหรับรับผู้ป่วยหน้า ER
+                </span>
+              </div>
               <div class="relative">
                 <select
                   id="requester-select"
@@ -882,13 +887,21 @@
       'use strict';
 
       // =========================================================================
-      // 1. SUPABASE CONFIGURATION
+      // 1. SUPABASE CONFIGURATION (ตรวจสอบ window.supabase อย่างปลอดภัย)
       // =========================================================================
       const SUPABASE_URL = 'https://jhezhynenhxgnramrhby.supabase.co';
       const SUPABASE_ANON_KEY = 'sb_publishable_ztuD1ceo8ME7VSKcYSaYKg_X9A5lHpE';
       const SESSION_STORAGE_KEY = 'er_task_log_session_user_v1';
 
-      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      let sb = null;
+      try {
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
+          sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+      } catch (initErr) {
+        console.error('Supabase initialization error:', initErr);
+        sb = null;
+      }
 
       // =========================================================================
       // 2. APPLICATION STATE
@@ -954,6 +967,8 @@
       const customTaskInput = document.getElementById('custom-task-input');
       const taskError = document.getElementById('task-error');
       const requesterSelect = document.getElementById('requester-select');
+      const requesterRequiredStar = document.getElementById('requester-required-star');
+      const requesterOptionalBadge = document.getElementById('requester-optional-badge');
       const requesterError = document.getElementById('requester-error');
       const coStaffNoneCheckbox = document.getElementById('co-staff-none');
       const coStaffNoneLabel = document.getElementById('co-staff-none-label');
@@ -1033,6 +1048,16 @@
         const div = document.createElement('div');
         div.textContent = String(str);
         return div.innerHTML;
+      }
+
+      /**
+       * จัดรูปแบบชื่อผู้แจ้งให้ทำ (หากเป็น '-' หรือว่าง ให้แสดง '-')
+       */
+      function formatRequesterDisplay(name) {
+        if (!name || String(name).trim() === '' || String(name).trim() === '-') {
+          return '-';
+        }
+        return `คุณ${String(name).trim()}`;
       }
 
       function showLoader(text = 'กำลังโหลดข้อมูล...') {
@@ -1217,6 +1242,7 @@
       // 5. SHARED MASTER DATA FETCHER
       // =========================================================================
       async function refreshAllStaffCache() {
+        if (!sb) return;
         try {
           const { data, error } = await sb
             .from('staff')
@@ -1240,12 +1266,40 @@
       // =========================================================================
       let verifyRequestToken = 0;
 
+      function showSupabaseUnavailableError() {
+        loginVerifyBox.innerHTML = `
+          <div class="w-full px-4 py-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs text-center space-y-1 animate-fade-in">
+            <div class="font-semibold">ไม่สามารถโหลดระบบเชื่อมต่อฐานข้อมูล (Supabase SDK) ได้</div>
+            <div class="text-[11px] text-rose-500">กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต หรือรีเฟรชหน้าเว็บใหม่อีกครั้ง</div>
+          </div>
+        `;
+      }
+
       async function handleAccessCodeInput() {
-        const cleaned = accessCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+        const rawValue = accessCodeInput.value;
+        const hasThaiChars = /[ก-๛]/.test(rawValue);
+        const cleaned = rawValue.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
         accessCodeInput.value = cleaned;
 
         verifiedLoginCandidate = null;
         loginSubmitBtn.disabled = true;
+
+        if (!sb) {
+          showSupabaseUnavailableError();
+          return;
+        }
+
+        if (hasThaiChars && cleaned.length < 6) {
+          loginVerifyBox.innerHTML = `
+            <div class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium animate-fade-in">
+              <svg class="w-5 h-5 shrink-0 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>กรุณาเปลี่ยนภาษาแป้นพิมพ์เป็นภาษาอังกฤษ (EN) เพื่อกรอกรหัส 6 หลัก</span>
+            </div>
+          `;
+          return;
+        }
 
         if (cleaned.length < 6) {
           loginVerifyBox.innerHTML = `<p class="text-xs text-slate-400 text-center">พิมพ์รหัสให้ครบ 6 หลักเพื่อตรวจสอบชื่อผู้ใช้งาน (${cleaned.length}/6)</p>`;
@@ -1319,8 +1373,9 @@
           if (currentToken !== verifyRequestToken) return;
           console.error('Login verification error:', err);
           loginVerifyBox.innerHTML = `
-            <div class="w-full px-4 py-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs text-center">
-              เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล กรุณาลองใหม่อีกครั้ง
+            <div class="w-full px-4 py-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs text-center space-y-1 animate-fade-in">
+              <div class="font-semibold">เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล กรุณาลองใหม่อีกครั้ง</div>
+              <div class="text-[11px] text-rose-500 font-mono break-all">${escapeHTML(err?.message || String(err))}</div>
             </div>
           `;
         }
@@ -1385,6 +1440,7 @@
       }
 
       async function tryRestoreSession() {
+        if (!sb) return false;
         try {
           const raw = sessionStorage.getItem(SESSION_STORAGE_KEY);
           if (!raw) return false;
@@ -1538,6 +1594,36 @@
       }
 
       /**
+       * ตรวจสอบว่ามีการเลือกงาน "รับผู้ป่วยหน้า ER" อยู่หรือไม่
+       */
+      function isErReceiveTaskSelected() {
+        const checkedValues = Array.from(
+          taskCheckboxesContainer.querySelectorAll('input[name="task_item"]:checked')
+        ).map((cb) => cb.value.trim());
+        return checkedValues.includes('รับผู้ป่วยหน้า ER');
+      }
+
+      /**
+       * ปรับสถานะช่อง "ผู้แจ้งให้ทำ" ให้เป็นไม่บังคับเมื่อเลือก "รับผู้ป่วยหน้า ER"
+       */
+      function updateRequesterOptionalState() {
+        const isOptional = isErReceiveTaskSelected();
+        requesterRequiredStar.classList.toggle('hidden', isOptional);
+        requesterOptionalBadge.classList.toggle('hidden', !isOptional);
+
+        const defaultOpt = requesterSelect.querySelector('option[value=""]');
+        if (defaultOpt) {
+          defaultOpt.textContent = isOptional
+            ? '-- ไม่ระบุผู้แจ้ง (รับผู้ป่วยหน้า ER) --'
+            : '-- กรุณาเลือกชื่อผู้แจ้งให้ทำ --';
+        }
+
+        if (isOptional) {
+          hideFieldError(requesterError);
+        }
+      }
+
+      /**
        * โหลดข้อมูล Master สำหรับแบบฟอร์มบันทึกงาน (task_types, requesters, operators)
        */
       async function loadStaffFormMasterData() {
@@ -1555,6 +1641,7 @@
           renderTaskCheckboxes(tasksRes.data || []);
           renderRequesterSelect(reqRes.data || []);
           renderCoStaffCheckboxes((staffRes.data || []).filter((s) => s.id !== currentUser.id));
+          updateRequesterOptionalState();
         } catch (err) {
           console.error('Load form master data error:', err);
           showToast('ไม่สามารถโหลดข้อมูลตัวเลือกได้ กรุณาลองใหม่', 'error');
@@ -1597,6 +1684,7 @@
               label.classList.add('border-slate-200', 'bg-white');
             }
             hideFieldError(taskError);
+            updateRequesterOptionalState();
           });
         });
       }
@@ -1607,6 +1695,7 @@
           `<option value="">-- กรุณาเลือกชื่อผู้แจ้งให้ทำ --</option>` +
           requesters.map((r) => `<option value="${escapeHTML(r.name)}">${escapeHTML(r.name)}</option>`).join('');
         if (currentVal) requesterSelect.value = currentVal;
+        updateRequesterOptionalState();
       }
 
       function renderCoStaffCheckboxes(operators) {
@@ -1707,6 +1796,7 @@
 
         customTaskCheckbox.checked = false;
         updateCustomTaskUI();
+        updateRequesterOptionalState();
 
         coStaffNoneCheckbox.checked = false;
         updateCoStaffNoneUI();
@@ -1762,9 +1852,10 @@
           hideFieldError(taskError);
         }
 
-        // 3. ผู้แจ้งให้ทำ
+        // 3. ผู้แจ้งให้ทำ (ไม่บังคับหากเลือก "รับผู้ป่วยหน้า ER")
+        const isRequesterOptional = isErReceiveTaskSelected();
         const requesterVal = requesterSelect.value;
-        if (!requesterVal) {
+        if (!requesterVal && !isRequesterOptional) {
           showFieldError(requesterError, 'กรุณาเลือกชื่อผู้แจ้งให้ทำ');
           isValid = false;
           firstErrEl = firstErrEl || requesterSelect;
@@ -1798,7 +1889,7 @@
           hn: hnVal,
           tasks: selectedTasks,
           customTaskName,
-          requester_name: requesterVal,
+          requester_name: requesterVal || '-',
           primary_staff_id: currentUser.id,
           co_staff_ids: isAlone ? [] : coStaffIds,
         };
@@ -1823,10 +1914,10 @@
             const loggedTime = formatBangkokTimeHHMM(match.logged_at);
 
             duplicateModalBody.innerHTML = `
-              งาน <span class="font-bold text-amber-800">[${escapeHTML(matchedText)}]</span>
-              ของ HN <span class="font-bold text-slate-900">${escapeHTML(payload.hn)}</span>
+              ผู้ป่วย HN <span class="font-bold text-slate-900">${escapeHTML(payload.hn)}</span>
               มีคุณ <span class="font-bold text-teal-700">${escapeHTML(match.staff_name)}</span>
-              ทำไปแล้วเมื่อเวลา <span class="font-semibold">${escapeHTML(loggedTime)} น.</span>
+              มีการบันทึกงาน <span class="font-bold text-amber-800">[${escapeHTML(matchedText)}]</span>
+              ไปแล้วเมื่อเวลา <span class="font-semibold">${escapeHTML(loggedTime)} น.</span>
               <div class="mt-2 font-bold text-slate-800">คุณยืนยันจะบันทึกซ้ำหรือไม่?</div>
             `;
             duplicateModal.classList.remove('hidden');
@@ -1960,7 +2051,7 @@
                   <div class="pt-2.5 border-t border-slate-100 space-y-1 text-xs">
                     <div class="flex justify-between gap-2">
                       <span class="text-slate-400">ผู้แจ้งให้ทำ:</span>
-                      <span class="font-medium text-slate-700">คุณ${escapeHTML(log.requester_name)}</span>
+                      <span class="font-medium text-slate-700">${escapeHTML(formatRequesterDisplay(log.requester_name))}</span>
                     </div>
                     <div class="flex justify-between gap-2">
                       <span class="text-slate-400">ผู้บันทึกหลัก:</span>
@@ -2145,7 +2236,7 @@
                 </td>
                 <td class="py-3.5 px-4 max-w-xs"><div class="flex flex-wrap">${taskHtml}</div></td>
                 <td class="py-3.5 px-4 whitespace-nowrap text-xs font-medium text-slate-700">
-                  คุณ${escapeHTML(log.requester_name)}
+                  ${escapeHTML(formatRequesterDisplay(log.requester_name))}
                 </td>
                 <td class="py-3.5 px-4 whitespace-nowrap text-xs">${primaryHtml}</td>
                 <td class="py-3.5 px-4 max-w-[220px]"><div class="flex flex-wrap">${coHtml}</div></td>
@@ -2170,7 +2261,7 @@
               'วัน-เวลา': `${formatBangkokDateTime(log.created_at)} น.`,
               'HN ผู้ป่วย': log.hn,
               'งานที่ทำ': (log.tasks || []).join(', '),
-              'ผู้แจ้งให้ทำ': `คุณ${log.requester_name}`,
+              'ผู้แจ้งให้ทำ': formatRequesterDisplay(log.requester_name),
               'ผู้ปฏิบัติงานหลัก': `คุณ${getStaffName(log.primary_staff_id)}`,
               'ผู้ปฏิบัติงานเพิ่มเติม': coList || 'ไม่มี (ปฏิบัติงานคนเดียว)',
             };
@@ -2727,6 +2818,10 @@
 
       window.addEventListener('DOMContentLoaded', async () => {
         bindEvents();
+        if (!sb) {
+          showSupabaseUnavailableError();
+          return;
+        }
         const restored = await tryRestoreSession();
         if (!restored) {
           accessCodeInput.focus();
