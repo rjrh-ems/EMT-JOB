@@ -427,7 +427,7 @@
             </div>
 
             <!-- เวร -->
-            <div class="lg:col-span-3">
+            <div class="lg:col-span-2">
               <label for="admin-filter-shift" class="block text-xs font-semibold text-slate-600 mb-1.5">เวร</label>
               <div class="relative">
                 <select
@@ -447,20 +447,45 @@
               </div>
             </div>
 
-            <!-- ผู้ปฏิบัติงาน -->
-            <div class="lg:col-span-2">
-              <label for="admin-filter-staff" class="block text-xs font-semibold text-slate-600 mb-1.5">ผู้ปฏิบัติงาน</label>
-              <div class="relative">
-                <select
-                  id="admin-filter-staff"
-                  class="w-full appearance-none px-3.5 py-2.5 pr-9 rounded-xl border border-slate-300 bg-slate-50/70 text-sm font-medium text-slate-800 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 outline-none cursor-pointer"
-                >
-                  <option value="all">ทั้งหมด</option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
+            <!-- ผู้ปฏิบัติงาน (Checkbox Multi-Select เฉพาะ is_operator = true) -->
+            <div class="lg:col-span-3 relative" id="admin-staff-multiselect-wrap">
+              <label class="block text-xs font-semibold text-slate-600 mb-1.5">
+                ผู้ปฏิบัติงาน <span class="text-[11px] font-normal text-slate-400">(เลือกได้หลายคน)</span>
+              </label>
+              <button
+                type="button"
+                id="admin-staff-dropdown-btn"
+                class="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 hover:bg-white text-sm font-medium text-slate-800 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 outline-none transition-all text-left"
+              >
+                <span id="admin-staff-dropdown-label" class="truncate">ทั้งหมด</span>
+                <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <!-- เมนู Dropdown รายชื่อ Checkbox -->
+              <div
+                id="admin-staff-dropdown-menu"
+                class="hidden absolute left-0 right-0 mt-1.5 z-40 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden animate-fade-in"
+              >
+                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    id="admin-staff-select-all-btn"
+                    class="text-xs font-semibold text-teal-700 hover:text-teal-800"
+                  >
+                    เลือกทั้งหมด
+                  </button>
+                  <button
+                    type="button"
+                    id="admin-staff-clear-sel-btn"
+                    class="text-xs font-medium text-slate-500 hover:text-rose-600"
+                  >
+                    ล้างที่เลือก
+                  </button>
+                </div>
+                <div id="admin-staff-checkbox-list" class="max-h-60 overflow-y-auto custom-scrollbar divide-y divide-slate-50 p-1.5">
+                  <p class="p-3 text-xs text-slate-400 text-center">กำลังโหลดรายชื่อ...</p>
                 </div>
               </div>
             </div>
@@ -535,7 +560,7 @@
               <div class="min-w-0">
                 <p class="text-xs font-medium text-slate-500">ช่วงเวลาที่ค้นหา</p>
                 <p id="admin-stat-range" class="text-sm font-bold text-indigo-700 mt-1.5 leading-snug">-</p>
-                <p id="admin-stat-staff" class="text-[11px] text-slate-500 mt-1 truncate">-</p>
+                <p id="admin-stat-staff" class="text-[11px] text-slate-500 mt-1 line-clamp-2">-</p>
               </div>
               <div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
@@ -1010,7 +1035,13 @@
       const adminFilterStartDate = document.getElementById('admin-filter-start-date');
       const adminFilterEndDate = document.getElementById('admin-filter-end-date');
       const adminFilterShift = document.getElementById('admin-filter-shift');
-      const adminFilterStaff = document.getElementById('admin-filter-staff');
+      const adminStaffMultiselectWrap = document.getElementById('admin-staff-multiselect-wrap');
+      const adminStaffDropdownBtn = document.getElementById('admin-staff-dropdown-btn');
+      const adminStaffDropdownLabel = document.getElementById('admin-staff-dropdown-label');
+      const adminStaffDropdownMenu = document.getElementById('admin-staff-dropdown-menu');
+      const adminStaffSelectAllBtn = document.getElementById('admin-staff-select-all-btn');
+      const adminStaffClearSelBtn = document.getElementById('admin-staff-clear-sel-btn');
+      const adminStaffCheckboxList = document.getElementById('admin-staff-checkbox-list');
       const adminClearBtn = document.getElementById('admin-clear-btn');
       const adminShiftHint = document.getElementById('admin-shift-hint');
       const adminEmptyState = document.getElementById('admin-empty-state');
@@ -1214,6 +1245,24 @@
           endIso: `${endDateStr}T23:59:59+07:00`,
           label: `ทั้งหมด (${dateDisplay} • 00:00 - 23:59 น.)`,
         };
+      }
+
+      /**
+       * ตรวจสอบว่าเวลา created_at (ตามเวลาไทย) ตรงกับช่วงเวรที่เลือกหรือไม่
+       */
+      function isTimestampInShift(isoStr, shiftKey) {
+        if (shiftKey === 'all') return true;
+        const hourStr = new Intl.DateTimeFormat('en-GB', {
+          timeZone: 'Asia/Bangkok',
+          hour: '2-digit',
+          hour12: false,
+        }).format(new Date(isoStr));
+        const hour = Number(hourStr);
+
+        if (shiftKey === 'morning') return hour >= 7 && hour < 15;
+        if (shiftKey === 'afternoon') return hour >= 15 && hour < 23;
+        if (shiftKey === 'night') return hour >= 23 || hour < 7;
+        return true;
       }
 
       function getRoleBadgeMeta(role) {
@@ -2069,25 +2118,63 @@
       }
 
       // =========================================================================
-      // 9. MODE 2: ADMIN DASHBOARD (ช่วงวันที่เริ่มต้น - วันที่สิ้นสุด)
+      // 9. MODE 2: ADMIN DASHBOARD (ช่วงวันที่เริ่มต้น - วันที่สิ้นสุด + Multi-Select Operator)
       // =========================================================================
+      function getSelectedAdminStaffIds() {
+        return Array.from(
+          adminStaffCheckboxList.querySelectorAll('input[name="admin_staff_opt"]:checked')
+        ).map((cb) => cb.value);
+      }
+
+      function updateAdminStaffDropdownLabel() {
+        const allCbs = adminStaffCheckboxList.querySelectorAll('input[name="admin_staff_opt"]');
+        const checked = getSelectedAdminStaffIds();
+
+        if (checked.length === 0 || (allCbs.length > 0 && checked.length === allCbs.length)) {
+          adminStaffDropdownLabel.textContent = 'ทั้งหมด';
+        } else if (checked.length === 1) {
+          adminStaffDropdownLabel.textContent = `คุณ${getStaffName(checked[0])}`;
+        } else {
+          adminStaffDropdownLabel.textContent = `เลือกแล้ว ${checked.length} คน`;
+        }
+      }
+
       function populateAdminStaffFilter() {
-  const prev = adminFilterStaff.value;
-  const operators = allStaffList.filter((s) => s.is_operator === true);
+        const prevSelected = new Set(getSelectedAdminStaffIds());
+        const operators = allStaffList.filter((s) => s.is_operator === true);
 
-  adminFilterStaff.innerHTML =
-    `<option value="all">ทั้งหมด</option>` +
-    operators
-      .map(
-        (s) =>
-          `<option value="${s.id}">คุณ${escapeHTML(s.full_name)}${s.is_active ? '' : ' (ปิดใช้งาน)'}</option>`
-      )
-      .join('');
+        if (operators.length === 0) {
+          adminStaffCheckboxList.innerHTML = `<p class="p-3 text-xs text-slate-400 text-center">ไม่พบรายชื่อผู้ปฏิบัติงาน</p>`;
+          updateAdminStaffDropdownLabel();
+          return;
+        }
 
-  if (prev && Array.from(adminFilterStaff.options).some((o) => o.value === prev)) {
-    adminFilterStaff.value = prev;
-  }
-}
+        adminStaffCheckboxList.innerHTML = operators
+          .map((s) => {
+            const isChecked = prevSelected.has(s.id) ? 'checked' : '';
+            return `
+              <label class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-teal-50/70 cursor-pointer select-none transition-colors">
+                <input
+                  type="checkbox"
+                  name="admin_staff_opt"
+                  value="${s.id}"
+                  ${isChecked}
+                  class="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer shrink-0"
+                />
+                <span class="text-xs sm:text-sm font-medium text-slate-700 truncate">
+                  คุณ${escapeHTML(s.full_name)}${s.is_active ? '' : ' <span class="text-[11px] text-rose-500">(ปิดใช้งาน)</span>'}
+                </span>
+              </label>
+            `;
+          })
+          .join('');
+
+        adminStaffCheckboxList.querySelectorAll('input[name="admin_staff_opt"]').forEach((cb) => {
+          cb.addEventListener('change', updateAdminStaffDropdownLabel);
+        });
+
+        updateAdminStaffDropdownLabel();
+      }
 
       function updateAdminShiftHint() {
         const startD = adminFilterStartDate.value;
@@ -2109,7 +2196,12 @@
         adminFilterStartDate.value = today;
         adminFilterEndDate.value = today;
         adminFilterShift.value = 'all';
-        adminFilterStaff.value = 'all';
+
+        adminStaffCheckboxList.querySelectorAll('input[name="admin_staff_opt"]').forEach((cb) => {
+          cb.checked = false;
+        });
+        updateAdminStaffDropdownLabel();
+        adminStaffDropdownMenu.classList.add('hidden');
         updateAdminShiftHint();
 
         lastAdminLogs = [];
@@ -2126,11 +2218,11 @@
 
       async function handleAdminSearch(e) {
         if (e) e.preventDefault();
+        adminStaffDropdownMenu.classList.add('hidden');
 
         const startDateStr = adminFilterStartDate.value;
         const endDateStr = adminFilterEndDate.value;
         const shiftKey = adminFilterShift.value;
-        const staffId = adminFilterStaff.value;
 
         if (!startDateStr || !endDateStr) {
           showToast('กรุณาเลือกวันที่เริ่มต้นและวันที่สิ้นสุด', 'error');
@@ -2147,6 +2239,12 @@
         try {
           await refreshAllStaffCache();
 
+          const allOperatorCbs = adminStaffCheckboxList.querySelectorAll('input[name="admin_staff_opt"]');
+          const selectedStaffIds = getSelectedAdminStaffIds();
+          const isAllOperators =
+            selectedStaffIds.length === 0 ||
+            (allOperatorCbs.length > 0 && selectedStaffIds.length === allOperatorCbs.length);
+
           let query = sb
             .from('work_logs')
             .select('*')
@@ -2154,8 +2252,11 @@
             .lte('created_at', range.endIso)
             .order('created_at', { ascending: true });
 
-          if (staffId !== 'all') {
-            query = query.or(`primary_staff_id.eq.${staffId},co_staff_ids.cs.{${staffId}}`);
+          if (!isAllOperators) {
+            const orFilters = selectedStaffIds
+              .map((id) => `primary_staff_id.eq.${id},co_staff_ids.cs.{${id}}`)
+              .join(',');
+            query = query.or(orFilters);
           }
 
           const { data, error } = await query;
@@ -2163,15 +2264,19 @@
 
           if (error) throw error;
 
-          const logs = data || [];
+          const logs = (data || []).filter((row) => isTimestampInShift(row.created_at, shiftKey));
+          const staffLabel = isAllOperators
+            ? 'ผู้ปฏิบัติงานทั้งหมด'
+            : selectedStaffIds.map((id) => `คุณ${getStaffName(id)}`).join(', ');
+
           lastAdminLogs = logs;
           lastAdminMeta = {
             startDateStr,
             endDateStr,
             shiftKey,
             rangeLabel: range.label,
-            staffId,
-            staffLabel: staffId === 'all' ? 'ผู้ปฏิบัติงานทั้งหมด' : `คุณ${getStaffName(staffId)}`,
+            selectedStaffIds: isAllOperators ? [] : selectedStaffIds,
+            staffLabel,
           };
 
           renderAdminResults(logs, lastAdminMeta);
@@ -2185,6 +2290,9 @@
       function renderAdminResults(logs, meta) {
         adminEmptyState.classList.add('hidden');
         adminResultsArea.classList.remove('hidden');
+
+        const selectedSet = new Set(meta.selectedStaffIds || []);
+        const hasStaffFilter = selectedSet.size > 0;
 
         const uniqueHns = new Set(logs.map((l) => l.hn.trim().toLowerCase()));
         adminStatTotal.textContent = logs.length.toLocaleString('th-TH');
@@ -2216,7 +2324,7 @@
 
             const primaryName = getStaffName(log.primary_staff_id);
             const primaryHtml =
-              meta.staffId !== 'all' && log.primary_staff_id === meta.staffId
+              hasStaffFilter && selectedSet.has(log.primary_staff_id)
                 ? `<span class="px-2 py-0.5 rounded-lg text-xs font-semibold bg-teal-100 text-teal-800">คุณ${escapeHTML(primaryName)}</span>`
                 : `<span class="font-medium text-slate-800">คุณ${escapeHTML(primaryName)}</span>`;
 
@@ -2227,7 +2335,7 @@
                 : coIds
                     .map((id) => {
                       const n = getStaffName(id);
-                      const hi = meta.staffId !== 'all' && id === meta.staffId;
+                      const hi = hasStaffFilter && selectedSet.has(id);
                       return `<span class="inline-block px-2 py-0.5 rounded-lg text-xs mr-1 mb-1 ${
                         hi ? 'font-semibold bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-700'
                       }">คุณ${escapeHTML(n)}</span>`;
@@ -2809,6 +2917,30 @@
           updateAdminShiftHint();
         });
         adminFilterShift.addEventListener('change', updateAdminShiftHint);
+
+        // Multi-select Staff Dropdown Toggle & Outside Click
+        adminStaffDropdownBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          adminStaffDropdownMenu.classList.toggle('hidden');
+        });
+        adminStaffSelectAllBtn.addEventListener('click', () => {
+          adminStaffCheckboxList.querySelectorAll('input[name="admin_staff_opt"]').forEach((cb) => {
+            cb.checked = true;
+          });
+          updateAdminStaffDropdownLabel();
+        });
+        adminStaffClearSelBtn.addEventListener('click', () => {
+          adminStaffCheckboxList.querySelectorAll('input[name="admin_staff_opt"]').forEach((cb) => {
+            cb.checked = false;
+          });
+          updateAdminStaffDropdownLabel();
+        });
+        document.addEventListener('click', (e) => {
+          if (!adminStaffMultiselectWrap.contains(e.target)) {
+            adminStaffDropdownMenu.classList.add('hidden');
+          }
+        });
+
         adminFilterForm.addEventListener('submit', handleAdminSearch);
         adminClearBtn.addEventListener('click', () => resetAdminDashboard(true));
         adminExportBtn.addEventListener('click', exportAdminExcel);
