@@ -304,37 +304,6 @@
               <p id="requester-error" class="hidden text-xs text-rose-600 mt-1.5 font-medium"></p>
             </div>
 
-            <!-- 4. ผู้ปฏิบัติงานเพิ่มเติม -->
-            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs">
-              <div class="flex items-center justify-between mb-3">
-                <label class="block text-sm font-semibold text-slate-800">
-                  ผู้ปฏิบัติงานเพิ่มเติม <span class="text-rose-500">*</span>
-                </label>
-                <span class="text-[11px] text-slate-400">ซ่อนชื่อคุณอัตโนมัติ</span>
-              </div>
-
-              <!-- ตัวเลือกแรก: ไม่มี (ปฏิบัติงานคนเดียว) เป็นค่าเริ่มต้น -->
-              <div class="mb-2.5">
-                <label
-                  for="co-staff-none"
-                  id="co-staff-none-label"
-                  class="flex items-center gap-3 p-3 rounded-xl border border-blue-500 bg-blue-50/70 ring-1 ring-blue-500/30 cursor-pointer hover:border-blue-400 transition-all select-none"
-                >
-                  <input
-                    type="checkbox"
-                    id="co-staff-none"
-                    value="NONE"
-                    checked
-                    class="w-5 h-5 rounded-md border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
-                  />
-                  <span class="text-sm font-medium text-slate-700">ไม่มี (ปฏิบัติงานคนเดียว)</span>
-                </label>
-              </div>
-
-              <div id="co-staff-container" class="grid grid-cols-2 gap-2.5"></div>
-              <p id="co-staff-error" class="hidden text-xs text-rose-600 mt-2 font-medium"></p>
-            </div>
-
             <!-- ปุ่มบันทึกข้อมูล -->
             <button
               type="submit"
@@ -371,7 +340,7 @@
               </button>
             </div>
             <div class="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-              <span class="text-xs text-slate-500">งานที่มีส่วนร่วม</span>
+              <span class="text-xs text-slate-500">รายการที่บันทึก</span>
               <span id="my-history-count" class="px-3 py-1 rounded-full bg-teal-50 text-teal-700 font-bold text-sm border border-teal-200">0 งาน</span>
             </div>
           </div>
@@ -599,15 +568,14 @@
             </div>
 
             <div id="admin-table-wrap" class="overflow-x-auto custom-scrollbar">
-              <table class="w-full text-left border-collapse min-w-[860px]">
+              <table class="w-full text-left border-collapse min-w-[740px]">
                 <thead>
                   <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase">
                     <th class="py-3.5 px-4 whitespace-nowrap">วัน-เวลา</th>
                     <th class="py-3.5 px-4 whitespace-nowrap">HN</th>
                     <th class="py-3.5 px-4">งานที่ทำ</th>
                     <th class="py-3.5 px-4 whitespace-nowrap">ผู้แจ้ง</th>
-                    <th class="py-3.5 px-4 whitespace-nowrap">ผู้ปฏิบัติงานหลัก</th>
-                    <th class="py-3.5 px-4">ผู้ปฏิบัติงานเพิ่มเติม</th>
+                    <th class="py-3.5 px-4 whitespace-nowrap">ผู้ปฏิบัติงาน</th>
                   </tr>
                 </thead>
                 <tbody id="admin-table-body" class="divide-y divide-slate-100 text-sm"></tbody>
@@ -860,7 +828,7 @@
           />
           <div>
             <div class="text-sm font-semibold text-slate-700">เป็นผู้ปฏิบัติงานหน้างานด้วย (is_operator)</div>
-            <div class="text-[11px] text-slate-500">แสดงชื่อในช่อง "ผู้ปฏิบัติงานเพิ่มเติม" และบันทึกงานได้</div>
+            <div class="text-[11px] text-slate-500">แสดงชื่อในตัวกรองผู้ปฏิบัติงานและสามารถบันทึกงานได้</div>
           </div>
         </label>
 
@@ -1014,10 +982,6 @@
       const requesterRequiredStar = document.getElementById('requester-required-star');
       const requesterOptionalBadge = document.getElementById('requester-optional-badge');
       const requesterError = document.getElementById('requester-error');
-      const coStaffNoneCheckbox = document.getElementById('co-staff-none');
-      const coStaffNoneLabel = document.getElementById('co-staff-none-label');
-      const coStaffContainer = document.getElementById('co-staff-container');
-      const coStaffError = document.getElementById('co-staff-error');
       const submitWorkLogBtn = document.getElementById('submit-work-log-btn');
       const myHistoryDate = document.getElementById('my-history-date');
       const refreshMyHistoryBtn = document.getElementById('refresh-my-history-btn');
@@ -1677,19 +1641,16 @@
 
       async function loadStaffFormMasterData() {
         try {
-          const [tasksRes, reqRes, staffRes] = await Promise.all([
+          const [tasksRes, reqRes] = await Promise.all([
             sb.from('task_types').select('*').eq('is_active', true).order('id', { ascending: true }),
             sb.from('requesters').select('*').eq('is_active', true).order('name', { ascending: true }),
-            sb.from('staff').select('*').eq('is_operator', true).eq('is_active', true).order('full_name', { ascending: true }),
           ]);
 
           if (tasksRes.error) throw tasksRes.error;
           if (reqRes.error) throw reqRes.error;
-          if (staffRes.error) throw staffRes.error;
 
           renderTaskCheckboxes(tasksRes.data || []);
           renderRequesterSelect(reqRes.data || []);
-          renderCoStaffCheckboxes((staffRes.data || []).filter((s) => s.id !== currentUser.id));
           updateRequesterOptionalState();
         } catch (err) {
           console.error('Load form master data error:', err);
@@ -1747,64 +1708,6 @@
         updateRequesterOptionalState();
       }
 
-      function renderCoStaffCheckboxes(operators) {
-        if (operators.length === 0) {
-          coStaffContainer.innerHTML = `<p class="col-span-full text-xs text-slate-400 py-1">ยังไม่มีผู้ปฏิบัติงานท่านอื่นในระบบ</p>`;
-          return;
-        }
-        coStaffContainer.innerHTML = operators
-          .map(
-            (s) => `
-            <label
-              for="co-staff-${s.id}"
-              class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:border-teal-400 transition-all select-none"
-            >
-              <input
-                type="checkbox"
-                id="co-staff-${s.id}"
-                name="co_staff"
-                value="${s.id}"
-                class="w-5 h-5 rounded-md border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer shrink-0"
-              />
-              <span class="text-sm font-medium text-slate-700 truncate">${escapeHTML(s.full_name)}</span>
-            </label>
-          `
-          )
-          .join('');
-
-        coStaffContainer.querySelectorAll('input[name="co_staff"]').forEach((cb) => {
-          cb.addEventListener('change', () => {
-            if (cb.checked && coStaffNoneCheckbox.checked) {
-              coStaffNoneCheckbox.checked = false;
-              updateCoStaffNoneUI();
-            }
-            updateCoStaffItemUI(cb);
-            hideFieldError(coStaffError);
-          });
-        });
-      }
-
-      function updateCoStaffItemUI(cb) {
-        const label = cb.closest('label');
-        if (cb.checked) {
-          label.classList.add('border-teal-500', 'bg-teal-50/60', 'ring-1', 'ring-teal-500/30');
-          label.classList.remove('border-slate-200', 'bg-white');
-        } else {
-          label.classList.remove('border-teal-500', 'bg-teal-50/60', 'ring-1', 'ring-teal-500/30');
-          label.classList.add('border-slate-200', 'bg-white');
-        }
-      }
-
-      function updateCoStaffNoneUI() {
-        if (coStaffNoneCheckbox.checked) {
-          coStaffNoneLabel.classList.add('border-blue-500', 'bg-blue-50/70', 'ring-1', 'ring-blue-500/30');
-          coStaffNoneLabel.classList.remove('border-slate-200', 'bg-slate-50/60');
-        } else {
-          coStaffNoneLabel.classList.remove('border-blue-500', 'bg-blue-50/70', 'ring-1', 'ring-blue-500/30');
-          coStaffNoneLabel.classList.add('border-slate-200', 'bg-slate-50/60');
-        }
-      }
-
       function updateCustomTaskUI() {
         if (customTaskCheckbox.checked) {
           customTaskLabel.classList.add('border-teal-500', 'bg-teal-50/60');
@@ -1834,7 +1737,6 @@
         hideFieldError(hnError);
         hideFieldError(taskError);
         hideFieldError(requesterError);
-        hideFieldError(coStaffError);
 
         taskCheckboxesContainer.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
           cb.checked = false;
@@ -1846,14 +1748,6 @@
         customTaskCheckbox.checked = false;
         updateCustomTaskUI();
         updateRequesterOptionalState();
-
-        // ตั้งค่าเริ่มต้น "ไม่มี (ปฏิบัติงานคนเดียว)" เป็น checked เสมอ
-        coStaffNoneCheckbox.checked = true;
-        updateCoStaffNoneUI();
-        coStaffContainer.querySelectorAll('input[name="co_staff"]').forEach((cb) => {
-          cb.checked = false;
-          updateCoStaffItemUI(cb);
-        });
       }
 
       async function handleWorkLogSubmit(e) {
@@ -1910,20 +1804,6 @@
           hideFieldError(requesterError);
         }
 
-        // 4. ผู้ปฏิบัติงานเพิ่มเติม
-        const isAlone = coStaffNoneCheckbox.checked;
-        const coStaffIds = Array.from(
-          coStaffContainer.querySelectorAll('input[name="co_staff"]:checked')
-        ).map((cb) => cb.value);
-
-        if (!isAlone && coStaffIds.length === 0) {
-          showFieldError(coStaffError, 'กรุณาเลือกผู้ปฏิบัติงานเพิ่มเติม หรือเลือก "ไม่มี (ปฏิบัติงานคนเดียว)"');
-          isValid = false;
-          firstErrEl = firstErrEl || coStaffNoneLabel;
-        } else {
-          hideFieldError(coStaffError);
-        }
-
         if (!isValid) {
           showToast('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน', 'error');
           if (firstErrEl && typeof firstErrEl.scrollIntoView === 'function') {
@@ -1938,7 +1818,7 @@
           customTaskName,
           requester_name: requesterVal || '-',
           primary_staff_id: currentUser.id,
-          co_staff_ids: isAlone ? [] : coStaffIds,
+          co_staff_ids: [],
         };
 
         submitWorkLogBtn.disabled = true;
@@ -1995,7 +1875,7 @@
             tasks: payload.tasks,
             requester_name: payload.requester_name,
             primary_staff_id: payload.primary_staff_id,
-            co_staff_ids: payload.co_staff_ids,
+            co_staff_ids: [],
           });
 
           if (insertErr) throw insertErr;
@@ -2039,7 +1919,7 @@
             .select('*')
             .gte('created_at', startIso)
             .lte('created_at', endIso)
-            .or(`primary_staff_id.eq.${currentUser.id},co_staff_ids.cs.{${currentUser.id}}`)
+            .eq('primary_staff_id', currentUser.id)
             .order('created_at', { ascending: false });
 
           if (error) throw error;
@@ -2051,7 +1931,7 @@
             myHistoryList.innerHTML = `
               <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center">
                 <p class="text-sm font-semibold text-slate-600">ยังไม่มีรายการงานในวันที่ ${escapeHTML(formatThaiDateShort(selectedDate))}</p>
-                <p class="text-xs text-slate-400 mt-1">งานที่คุณบันทึกเองหรือมีชื่อเป็นผู้ปฏิบัติงานร่วมจะแสดงที่นี่</p>
+                <p class="text-xs text-slate-400 mt-1">รายการงานที่คุณบันทึกในวันที่เลือกจะแสดงที่นี่</p>
               </div>
             `;
             return;
@@ -2059,23 +1939,12 @@
 
           myHistoryList.innerHTML = logs
             .map((log) => {
-              const isPrimary = log.primary_staff_id === currentUser.id;
-              const roleBadge = isPrimary
-                ? `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-teal-50 text-teal-700 border border-teal-200">ผู้บันทึกหลัก</span>`
-                : `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">ผู้ปฏิบัติงานร่วม</span>`;
-
               const taskPills = (log.tasks || [])
                 .map(
                   (t) =>
                     `<span class="inline-block px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/70">${escapeHTML(t)}</span>`
                 )
                 .join('');
-
-              const coNames = (log.co_staff_ids || []).map((id) => `คุณ${escapeHTML(getStaffName(id))}`);
-              const coDisplay =
-                coNames.length > 0
-                  ? coNames.join(', ')
-                  : `<span class="text-slate-400">ไม่มี (ปฏิบัติงานคนเดียว)</span>`;
 
               return `
                 <article class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
@@ -2086,7 +1955,9 @@
                       </span>
                       <span class="text-base font-bold text-slate-800">HN: ${escapeHTML(log.hn)}</span>
                     </div>
-                    ${roleBadge}
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-teal-50 text-teal-700 border border-teal-200">
+                      คุณ${escapeHTML(getStaffName(log.primary_staff_id))}
+                    </span>
                   </div>
                   <div class="py-3 flex flex-wrap gap-1.5">${taskPills}</div>
                   <div class="pt-2.5 border-t border-slate-100 space-y-1 text-xs">
@@ -2095,12 +1966,8 @@
                       <span class="font-medium text-slate-700">${escapeHTML(formatRequesterDisplay(log.requester_name))}</span>
                     </div>
                     <div class="flex justify-between gap-2">
-                      <span class="text-slate-400">ผู้บันทึกหลัก:</span>
+                      <span class="text-slate-400">ผู้ปฏิบัติงาน:</span>
                       <span class="font-medium text-slate-700">คุณ${escapeHTML(getStaffName(log.primary_staff_id))}</span>
-                    </div>
-                    <div class="flex justify-between gap-2">
-                      <span class="text-slate-400">ผู้ปฏิบัติงานเพิ่มเติม:</span>
-                      <span class="font-medium text-slate-700 text-right">${coDisplay}</span>
                     </div>
                   </div>
                 </article>
@@ -2253,10 +2120,7 @@
             .order('created_at', { ascending: true });
 
           if (!isAllOperators) {
-            const orFilters = selectedStaffIds
-              .map((id) => `primary_staff_id.eq.${id},co_staff_ids.cs.{${id}}`)
-              .join(',');
-            query = query.or(orFilters);
+            query = query.in('primary_staff_id', selectedStaffIds);
           }
 
           const { data, error } = await query;
@@ -2328,20 +2192,6 @@
                 ? `<span class="px-2 py-0.5 rounded-lg text-xs font-semibold bg-teal-100 text-teal-800">คุณ${escapeHTML(primaryName)}</span>`
                 : `<span class="font-medium text-slate-800">คุณ${escapeHTML(primaryName)}</span>`;
 
-            const coIds = log.co_staff_ids || [];
-            const coHtml =
-              coIds.length === 0
-                ? `<span class="text-xs text-slate-400">ไม่มี (ทำคนเดียว)</span>`
-                : coIds
-                    .map((id) => {
-                      const n = getStaffName(id);
-                      const hi = hasStaffFilter && selectedSet.has(id);
-                      return `<span class="inline-block px-2 py-0.5 rounded-lg text-xs mr-1 mb-1 ${
-                        hi ? 'font-semibold bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-700'
-                      }">คุณ${escapeHTML(n)}</span>`;
-                    })
-                    .join('');
-
             return `
               <tr class="hover:bg-slate-50/80 transition-colors">
                 <td class="py-3.5 px-4 whitespace-nowrap text-xs font-medium text-slate-700 tabular-nums">
@@ -2350,12 +2200,11 @@
                 <td class="py-3.5 px-4 whitespace-nowrap font-bold text-slate-800 tabular-nums">
                   ${escapeHTML(log.hn)}
                 </td>
-                <td class="py-3.5 px-4 max-w-xs"><div class="flex flex-wrap">${taskHtml}</div></td>
+                <td class="py-3.5 px-4 max-w-md"><div class="flex flex-wrap">${taskHtml}</div></td>
                 <td class="py-3.5 px-4 whitespace-nowrap text-xs font-medium text-slate-700">
                   ${escapeHTML(formatRequesterDisplay(log.requester_name))}
                 </td>
                 <td class="py-3.5 px-4 whitespace-nowrap text-xs">${primaryHtml}</td>
-                <td class="py-3.5 px-4 max-w-[220px]"><div class="flex flex-wrap">${coHtml}</div></td>
               </tr>
             `;
           })
@@ -2370,18 +2219,14 @@
             return;
           }
 
-          const rows = lastAdminLogs.map((log, idx) => {
-            const coList = (log.co_staff_ids || []).map((id) => `คุณ${getStaffName(id)}`).join(', ');
-            return {
-              'ลำดับ': idx + 1,
-              'วัน-เวลา': `${formatBangkokDateTime(log.created_at)} น.`,
-              'HN ผู้ป่วย': log.hn,
-              'งานที่ทำ': (log.tasks || []).join(', '),
-              'ผู้แจ้งให้ทำ': formatRequesterDisplay(log.requester_name),
-              'ผู้ปฏิบัติงานหลัก': `คุณ${getStaffName(log.primary_staff_id)}`,
-              'ผู้ปฏิบัติงานเพิ่มเติม': coList || 'ไม่มี (ปฏิบัติงานคนเดียว)',
-            };
-          });
+          const rows = lastAdminLogs.map((log, idx) => ({
+            'ลำดับ': idx + 1,
+            'วัน-เวลา': `${formatBangkokDateTime(log.created_at)} น.`,
+            'HN ผู้ป่วย': log.hn,
+            'งานที่ทำ': (log.tasks || []).join(', '),
+            'ผู้แจ้งให้ทำ': formatRequesterDisplay(log.requester_name),
+            'ผู้ปฏิบัติงาน': `คุณ${getStaffName(log.primary_staff_id)}`,
+          }));
 
           const ws = XLSX.utils.json_to_sheet(rows);
           ws['!cols'] = [
@@ -2390,8 +2235,7 @@
             { wch: 14 },
             { wch: 36 },
             { wch: 16 },
-            { wch: 18 },
-            { wch: 28 },
+            { wch: 22 },
           ];
           const wb = XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(wb, ws, 'ER_Task_Log');
@@ -2876,17 +2720,6 @@
           hideFieldError(taskError);
         });
         customTaskInput.addEventListener('input', () => hideFieldError(taskError));
-
-        coStaffNoneCheckbox.addEventListener('change', () => {
-          if (coStaffNoneCheckbox.checked) {
-            coStaffContainer.querySelectorAll('input[name="co_staff"]').forEach((cb) => {
-              cb.checked = false;
-              updateCoStaffItemUI(cb);
-            });
-          }
-          updateCoStaffNoneUI();
-          hideFieldError(coStaffError);
-        });
 
         workLogForm.addEventListener('submit', handleWorkLogSubmit);
         myHistoryDate.addEventListener('change', loadMyHistory);
