@@ -2072,19 +2072,22 @@
       // 9. MODE 2: ADMIN DASHBOARD (ช่วงวันที่เริ่มต้น - วันที่สิ้นสุด)
       // =========================================================================
       function populateAdminStaffFilter() {
-        const prev = adminFilterStaff.value;
-        adminFilterStaff.innerHTML =
-          `<option value="all">ทั้งหมด</option>` +
-          allStaffList
-            .map(
-              (s) =>
-                `<option value="${s.id}">คุณ${escapeHTML(s.full_name)}${s.is_active ? '' : ' (ปิดใช้งาน)'}</option>`
-            )
-            .join('');
-        if (prev && Array.from(adminFilterStaff.options).some((o) => o.value === prev)) {
-          adminFilterStaff.value = prev;
-        }
-      }
+  const prev = adminFilterStaff.value;
+  const operators = allStaffList.filter((s) => s.is_operator === true);
+
+  adminFilterStaff.innerHTML =
+    `<option value="all">ทั้งหมด</option>` +
+    operators
+      .map(
+        (s) =>
+          `<option value="${s.id}">คุณ${escapeHTML(s.full_name)}${s.is_active ? '' : ' (ปิดใช้งาน)'}</option>`
+      )
+      .join('');
+
+  if (prev && Array.from(adminFilterStaff.options).some((o) => o.value === prev)) {
+    adminFilterStaff.value = prev;
+  }
+}
 
       function updateAdminShiftHint() {
         const startD = adminFilterStartDate.value;
