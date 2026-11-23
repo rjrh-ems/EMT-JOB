@@ -367,8 +367,21 @@
                 <p class="text-xs text-slate-400">เลือกช่วงวันที่ เวร หรือผู้ปฏิบัติงาน แล้วกดปุ่ม "ค้นหา" เพื่อแสดงข้อมูลจากฐานข้อมูล</p>
               </div>
             </div>
-            <div id="admin-shift-hint" class="text-xs font-medium text-teal-700 bg-teal-50 border border-teal-100 px-3 py-1.5 rounded-xl">
-              ช่วงเวลา: -
+            <div class="flex items-center gap-2 flex-wrap">
+              <div id="admin-shift-hint" class="text-xs font-medium text-teal-700 bg-teal-50 border border-teal-100 px-3 py-1.5 rounded-xl">
+                ช่วงเวลา: -
+              </div>
+              <!-- ปุ่มเพิ่มรายการบันทึก (เฉพาะ Super Admin) -->
+              <button
+                type="button"
+                id="admin-add-worklog-btn"
+                class="hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] shadow-xs transition-all"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                เพิ่มรายการบันทึก
+              </button>
             </div>
           </div>
 
@@ -568,7 +581,7 @@
             </div>
 
             <div id="admin-table-wrap" class="overflow-x-auto custom-scrollbar">
-              <table class="w-full text-left border-collapse min-w-[740px]">
+              <table class="w-full text-left border-collapse min-w-[780px]">
                 <thead>
                   <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase">
                     <th class="py-3.5 px-4 whitespace-nowrap">วัน-เวลา</th>
@@ -576,6 +589,7 @@
                     <th class="py-3.5 px-4">งานที่ทำ</th>
                     <th class="py-3.5 px-4 whitespace-nowrap">ผู้แจ้ง</th>
                     <th class="py-3.5 px-4 whitespace-nowrap">ผู้ปฏิบัติงาน</th>
+                    <th id="admin-table-actions-th" class="hidden py-3.5 px-4 text-right whitespace-nowrap">จัดการ</th>
                   </tr>
                 </thead>
                 <tbody id="admin-table-body" class="divide-y divide-slate-100 text-sm"></tbody>
@@ -619,7 +633,7 @@
           <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 class="text-base font-bold text-slate-800">จัดการผู้ใช้งานและรหัส 6 หลัก</h2>
-              <p class="text-xs text-slate-500">สร้าง แก้ไข สุ่มรหัส 6 หลัก และเปิด/ปิดสิทธิ์การเข้าใช้งาน</p>
+              <p class="text-xs text-slate-500">สร้าง แก้ไข สุ่มรหัส 6 หลัก เปิด/ปิดสิทธิ์ หรือลบบัญชีผู้ใช้งาน</p>
             </div>
             <button
               type="button"
@@ -634,7 +648,7 @@
           </div>
 
           <div class="overflow-x-auto custom-scrollbar">
-            <table class="w-full text-left border-collapse min-w-[720px]">
+            <table class="w-full text-left border-collapse min-w-[740px]">
               <thead>
                 <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
                   <th class="py-3.5 px-4">รหัส 6 หลัก</th>
@@ -654,7 +668,7 @@
         <div id="sa-panel-requesters" class="hidden bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div class="p-5 border-b border-slate-100">
             <h2 class="text-base font-bold text-slate-800 mb-1">จัดการรายชื่อผู้แจ้งให้ทำ</h2>
-            <p class="text-xs text-slate-500 mb-4">เพิ่มรายชื่อใหม่หรือปิดใช้งานรายชื่อเดิมไม่ให้แสดงใน Dropdown</p>
+            <p class="text-xs text-slate-500 mb-4">เพิ่มรายชื่อ แก้ไขชื่อ เปิด/ปิดใช้งาน หรือลบรายชื่อผู้แจ้ง</p>
             <form id="sa-add-requester-form" class="flex flex-col sm:flex-row gap-2.5 max-w-lg">
               <input
                 type="text"
@@ -679,7 +693,7 @@
         <div id="sa-panel-tasks" class="hidden bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div class="p-5 border-b border-slate-100">
             <h2 class="text-base font-bold text-slate-800 mb-1">จัดการรายการงาน (Task Types)</h2>
-            <p class="text-xs text-slate-500 mb-4">เพิ่มรายการงาน เปลี่ยนชื่อเพื่อแก้ไขคำผิด หรือปิดใช้งานรายการที่ไม่ต้องการ</p>
+            <p class="text-xs text-slate-500 mb-4">เพิ่มรายการงาน แก้ไขชื่อ เปิด/ปิดใช้งาน หรือลบรายการที่ไม่ต้องการ</p>
             <form id="sa-add-task-form" class="flex flex-col sm:flex-row gap-2.5 max-w-lg">
               <input
                 type="text"
@@ -853,17 +867,18 @@
   </div>
 
   <!-- =========================================================================
-       MODAL 3: แก้ไขชื่อรายการงาน (RENAME TASK MODAL)
+       MODAL 3: แก้ไขชื่อรายการงาน / ผู้แจ้ง (RENAME MASTER MODAL)
        ========================================================================= -->
   <div id="rename-task-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-[2px]">
     <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-fade-in">
       <div class="px-6 py-4 border-b border-slate-100">
-        <h3 class="text-base font-bold text-slate-800">แก้ไขชื่อรายการงาน</h3>
+        <h3 id="rename-modal-title" class="text-base font-bold text-slate-800">แก้ไขชื่อรายการงาน</h3>
       </div>
       <form id="rename-task-form" class="p-6 space-y-4">
+        <input type="hidden" id="rename-target-table" value="task_types" />
         <input type="hidden" id="rename-task-id" />
         <div>
-          <label for="rename-task-input" class="block text-xs font-semibold text-slate-700 mb-1.5">ชื่อรายการงาน</label>
+          <label id="rename-modal-label" for="rename-task-input" class="block text-xs font-semibold text-slate-700 mb-1.5">ชื่อรายการงาน</label>
           <input
             type="text"
             id="rename-task-input"
@@ -888,6 +903,139 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 4: เพิ่ม / แก้ไขรายการบันทึกงาน (SUPER ADMIN WORK LOG MODAL)
+       ========================================================================= -->
+  <div id="worklog-editor-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-[2px]">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-fade-in max-h-[92vh] flex flex-col">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+        <div>
+          <h3 id="worklog-modal-title" class="text-base font-bold text-slate-800">แก้ไขรายการบันทึกงาน</h3>
+          <p id="worklog-modal-subtitle" class="text-xs text-slate-400 mt-0.5">-</p>
+        </div>
+        <button type="button" id="worklog-modal-close-x" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form id="worklog-editor-form" class="p-6 space-y-4 overflow-y-auto custom-scrollbar">
+        <input type="hidden" id="edit-worklog-id" />
+
+        <!-- วัน-เวลาที่บันทึก -->
+        <div>
+          <label for="edit-worklog-datetime" class="block text-xs font-semibold text-slate-700 mb-1.5">
+            วัน-เวลาที่บันทึก <span class="text-rose-500">*</span>
+          </label>
+          <input
+            type="datetime-local"
+            id="edit-worklog-datetime"
+            required
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 text-sm font-medium focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 outline-none"
+          />
+        </div>
+
+        <!-- HN ผู้ป่วย -->
+        <div>
+          <label for="edit-worklog-hn" class="block text-xs font-semibold text-slate-700 mb-1.5">
+            HN ผู้ป่วย <span class="text-rose-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="edit-worklog-hn"
+            required
+            placeholder="กรอกเลข HN ผู้ป่วย"
+            autocomplete="off"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 text-sm font-medium focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 outline-none"
+          />
+        </div>
+
+        <!-- งานที่ทำ -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+            งานที่ทำ <span class="text-rose-500">*</span>
+          </label>
+          <div id="edit-worklog-tasks-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto custom-scrollbar p-2 rounded-xl border border-slate-200 bg-slate-50/50"></div>
+        </div>
+
+        <!-- ผู้แจ้งให้ทำ -->
+        <div>
+          <label for="edit-worklog-requester" class="block text-xs font-semibold text-slate-700 mb-1.5">
+            ผู้แจ้งให้ทำ
+          </label>
+          <select
+            id="edit-worklog-requester"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 text-sm font-medium focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 outline-none"
+          >
+            <option value="-">-- ไม่ระบุผู้แจ้ง (-) --</option>
+          </select>
+        </div>
+
+        <!-- ผู้ปฏิบัติงาน -->
+        <div>
+          <label for="edit-worklog-staff" class="block text-xs font-semibold text-slate-700 mb-1.5">
+            ผู้ปฏิบัติงาน <span class="text-rose-500">*</span>
+          </label>
+          <select
+            id="edit-worklog-staff"
+            required
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 text-sm font-medium focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 outline-none"
+          ></select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <button
+            type="button"
+            id="worklog-modal-cancel-btn"
+            class="py-2.5 px-4 rounded-xl font-semibold text-sm text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all"
+          >
+            ยกเลิก
+          </button>
+          <button
+            type="submit"
+            class="py-2.5 px-4 rounded-xl font-semibold text-sm text-white bg-teal-600 hover:bg-teal-700 shadow-md shadow-teal-600/20 transition-all"
+          >
+            บันทึกข้อมูล
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 5: ยืนยันการลบข้อมูลทุกตาราง (GENERIC CONFIRM DELETE MODAL)
+       ========================================================================= -->
+  <div id="confirm-delete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-[2px]">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-fade-in">
+      <div class="p-6">
+        <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </div>
+        <h3 id="confirm-delete-title" class="text-lg font-bold text-slate-800 text-center">ยืนยันการลบข้อมูล</h3>
+        <div id="confirm-delete-body" class="mt-3 text-sm text-slate-700 leading-relaxed bg-rose-50/80 border border-rose-200 rounded-2xl p-4 text-center"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3 px-6 pb-6">
+        <button
+          type="button"
+          id="confirm-delete-cancel-btn"
+          class="py-3 px-4 rounded-xl font-semibold text-sm text-slate-700 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] transition-all"
+        >
+          ยกเลิก
+        </button>
+        <button
+          type="button"
+          id="confirm-delete-ok-btn"
+          class="py-3 px-4 rounded-xl font-semibold text-sm text-white bg-rose-600 hover:bg-rose-700 active:scale-[0.98] shadow-md shadow-rose-600/25 transition-all"
+        >
+          ยืนยันลบข้อมูล
+        </button>
+      </div>
     </div>
   </div>
 
@@ -930,9 +1078,12 @@
       // ข้อมูลที่รอยืนยันกรณีตรวจพบงานซ้ำซ้อน
       let pendingWorkLogData = null;
 
-      // ข้อมูลผลลัพธ์ล่าสุดในหน้า Admin Dashboard สำหรับ Export Excel
+      // ข้อมูลผลลัพธ์ล่าสุดในหน้า Admin Dashboard สำหรับ Export Excel และการแก้ไข/ลบ
       let lastAdminLogs = [];
       let lastAdminMeta = null;
+
+      // สถานะการยืนยันลบข้อมูลสำหรับทุกตาราง
+      let pendingDeleteAction = null;
 
       // =========================================================================
       // 3. DOM REFERENCES
@@ -1008,6 +1159,7 @@
       const adminStaffCheckboxList = document.getElementById('admin-staff-checkbox-list');
       const adminClearBtn = document.getElementById('admin-clear-btn');
       const adminShiftHint = document.getElementById('admin-shift-hint');
+      const adminAddWorklogBtn = document.getElementById('admin-add-worklog-btn');
       const adminEmptyState = document.getElementById('admin-empty-state');
       const adminResultsArea = document.getElementById('admin-results-area');
       const adminStatTotal = document.getElementById('admin-stat-total');
@@ -1018,7 +1170,29 @@
       const adminExportBtn = document.getElementById('admin-export-btn');
       const adminNoRows = document.getElementById('admin-no-rows');
       const adminTableWrap = document.getElementById('admin-table-wrap');
+      const adminTableActionsTh = document.getElementById('admin-table-actions-th');
       const adminTableBody = document.getElementById('admin-table-body');
+
+      // Work Log Editor Modal (Super Admin Add/Edit)
+      const worklogEditorModal = document.getElementById('worklog-editor-modal');
+      const worklogModalTitle = document.getElementById('worklog-modal-title');
+      const worklogModalSubtitle = document.getElementById('worklog-modal-subtitle');
+      const worklogModalCloseX = document.getElementById('worklog-modal-close-x');
+      const worklogModalCancelBtn = document.getElementById('worklog-modal-cancel-btn');
+      const worklogEditorForm = document.getElementById('worklog-editor-form');
+      const editWorklogId = document.getElementById('edit-worklog-id');
+      const editWorklogDatetime = document.getElementById('edit-worklog-datetime');
+      const editWorklogHn = document.getElementById('edit-worklog-hn');
+      const editWorklogTasksContainer = document.getElementById('edit-worklog-tasks-container');
+      const editWorklogRequester = document.getElementById('edit-worklog-requester');
+      const editWorklogStaff = document.getElementById('edit-worklog-staff');
+
+      // Confirm Delete Modal
+      const confirmDeleteModal = document.getElementById('confirm-delete-modal');
+      const confirmDeleteTitle = document.getElementById('confirm-delete-title');
+      const confirmDeleteBody = document.getElementById('confirm-delete-body');
+      const confirmDeleteCancelBtn = document.getElementById('confirm-delete-cancel-btn');
+      const confirmDeleteOkBtn = document.getElementById('confirm-delete-ok-btn');
 
       // Super Admin Elements
       const saTabBtns = document.querySelectorAll('.sa-tab-btn');
@@ -1048,8 +1222,11 @@
       const selfRoleGuardNote = document.getElementById('self-role-guard-note');
       const editStaffOperator = document.getElementById('edit-staff-operator');
 
-      // Rename Task Modal
+      // Rename Master Modal (Tasks & Requesters)
       const renameTaskModal = document.getElementById('rename-task-modal');
+      const renameModalTitle = document.getElementById('rename-modal-title');
+      const renameModalLabel = document.getElementById('rename-modal-label');
+      const renameTargetTable = document.getElementById('rename-target-table');
       const renameTaskForm = document.getElementById('rename-task-form');
       const renameTaskId = document.getElementById('rename-task-id');
       const renameTaskInput = document.getElementById('rename-task-input');
@@ -1138,6 +1315,27 @@
         }).format(new Date());
       }
 
+      /**
+       * แปลง ISO Timestamp เป็นค่าสำหรับ input type="datetime-local" ตามเวลาไทย (YYYY-MM-DDTHH:mm)
+       */
+      function toBangkokDatetimeLocalValue(isoStr) {
+        const d = isoStr ? new Date(isoStr) : new Date();
+        const parts = new Intl.DateTimeFormat('en-GB', {
+          timeZone: 'Asia/Bangkok',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        }).formatToParts(d);
+        const map = {};
+        parts.forEach((p) => {
+          map[p.type] = p.value;
+        });
+        return `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}`;
+      }
+
       function addDaysToDateStr(dateStr, days) {
         const [y, m, d] = dateStr.split('-').map(Number);
         const dt = new Date(Date.UTC(y, m - 1, d + days));
@@ -1173,9 +1371,6 @@
         return `${datePart} ${timePart}`;
       }
 
-      /**
-       * คำนวณช่วงเวลาเวรตามช่วงวันที่เริ่มต้น - วันที่สิ้นสุด ในเขตเวลา +07:00
-       */
       function getShiftRangeIso(startDateStr, endDateStr, shiftKey) {
         const isSameDay = startDateStr === endDateStr;
         const dateDisplay = isSameDay
@@ -1211,9 +1406,6 @@
         };
       }
 
-      /**
-       * ตรวจสอบว่าเวลา created_at (ตามเวลาไทย) ตรงกับช่วงเวรที่เลือกหรือไม่
-       */
       function isTimestampInShift(isoStr, shiftKey) {
         if (shiftKey === 'all') return true;
         const hourStr = new Intl.DateTimeFormat('en-GB', {
@@ -1250,6 +1442,17 @@
 
       function getStaffName(id) {
         return allStaffMap[id]?.full_name || 'ไม่ทราบชื่อ';
+      }
+
+      function isSuperAdmin() {
+        return currentUser && currentUser.role === 'super_admin';
+      }
+
+      function openConfirmDeleteModal({ title, bodyHtml, onConfirm }) {
+        confirmDeleteTitle.textContent = title || 'ยืนยันการลบข้อมูล';
+        confirmDeleteBody.innerHTML = bodyHtml;
+        pendingDeleteAction = onConfirm;
+        confirmDeleteModal.classList.remove('hidden');
       }
 
       // =========================================================================
@@ -1415,14 +1618,12 @@
         currentUser = user;
         saveDeviceUser(user);
 
-        // อัปเดต Header
         const badge = getRoleBadgeMeta(user.role);
         headerAvatar.textContent = user.full_name.charAt(0);
         headerUserName.textContent = `คุณ${user.full_name}`;
         headerRoleBadge.textContent = badge.label;
         headerRoleBadge.className = `px-2 py-0.5 rounded-full text-[10px] font-semibold border ${badge.cls}`;
 
-        // สร้างแถบสลับโหมดตามสิทธิ์
         buildModeSwitcher();
 
         showLoader('กำลังเตรียมข้อมูลระบบ...');
@@ -1432,7 +1633,6 @@
         loginView.classList.add('hidden');
         appView.classList.remove('hidden');
 
-        // กำหนดโหมดเริ่มต้นตามสิทธิ์
         if (user.role === 'super_admin') {
           await switchMode('super_admin');
         } else if (user.role === 'admin') {
@@ -1558,6 +1758,7 @@
           switchStaffSubTab('form');
         } else if (mode === 'admin') {
           modeAdminEl.classList.remove('hidden');
+          adminAddWorklogBtn.classList.toggle('hidden', !isSuperAdmin());
           await refreshAllStaffCache();
           resetAdminDashboard(false);
         } else if (mode === 'super_admin') {
@@ -1985,7 +2186,7 @@
       }
 
       // =========================================================================
-      // 9. MODE 2: ADMIN DASHBOARD (ช่วงวันที่เริ่มต้น - วันที่สิ้นสุด + Multi-Select Operator)
+      // 9. MODE 2: ADMIN DASHBOARD + SUPER ADMIN CRUD ON WORK_LOGS
       // =========================================================================
       function getSelectedAdminStaffIds() {
         return Array.from(
@@ -2155,6 +2356,9 @@
         adminEmptyState.classList.add('hidden');
         adminResultsArea.classList.remove('hidden');
 
+        const canManageLogs = isSuperAdmin();
+        adminTableActionsTh.classList.toggle('hidden', !canManageLogs);
+
         const selectedSet = new Set(meta.selectedStaffIds || []);
         const hasStaffFilter = selectedSet.size > 0;
 
@@ -2192,6 +2396,29 @@
                 ? `<span class="px-2 py-0.5 rounded-lg text-xs font-semibold bg-teal-100 text-teal-800">คุณ${escapeHTML(primaryName)}</span>`
                 : `<span class="font-medium text-slate-800">คุณ${escapeHTML(primaryName)}</span>`;
 
+            const actionCellHtml = canManageLogs
+              ? `
+                <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                  <div class="inline-flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      data-edit-log-id="${escapeHTML(log.id)}"
+                      class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
+                    >
+                      แก้ไข
+                    </button>
+                    <button
+                      type="button"
+                      data-delete-log-id="${escapeHTML(log.id)}"
+                      class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"
+                    >
+                      ลบ
+                    </button>
+                  </div>
+                </td>
+              `
+              : '';
+
             return `
               <tr class="hover:bg-slate-50/80 transition-colors">
                 <td class="py-3.5 px-4 whitespace-nowrap text-xs font-medium text-slate-700 tabular-nums">
@@ -2205,10 +2432,228 @@
                   ${escapeHTML(formatRequesterDisplay(log.requester_name))}
                 </td>
                 <td class="py-3.5 px-4 whitespace-nowrap text-xs">${primaryHtml}</td>
+                ${actionCellHtml}
               </tr>
             `;
           })
           .join('');
+
+        if (canManageLogs) {
+          adminTableBody.querySelectorAll('[data-edit-log-id]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const target = lastAdminLogs.find((item) => String(item.id) === String(btn.dataset.editLogId));
+              if (target) openWorkLogEditorModal(target);
+            });
+          });
+
+          adminTableBody.querySelectorAll('[data-delete-log-id]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const target = lastAdminLogs.find((item) => String(item.id) === String(btn.dataset.deleteLogId));
+              if (target) promptDeleteWorkLog(target);
+            });
+          });
+        }
+      }
+
+      // ---------- Super Admin: Add / Edit Work Log ----------
+      async function openWorkLogEditorModal(log = null) {
+        if (!isSuperAdmin()) return;
+        const isEdit = Boolean(log);
+        showLoader('กำลังโหลดตัวเลือก...');
+        try {
+          const [tasksRes, reqRes] = await Promise.all([
+            sb.from('task_types').select('*').order('id', { ascending: true }),
+            sb.from('requesters').select('*').order('name', { ascending: true }),
+          ]);
+          hideLoader();
+
+          if (tasksRes.error) throw tasksRes.error;
+          if (reqRes.error) throw reqRes.error;
+
+          worklogModalTitle.textContent = isEdit ? 'แก้ไขรายการบันทึกงาน' : 'เพิ่มรายการบันทึกงานใหม่';
+          worklogModalSubtitle.textContent = isEdit
+            ? `รหัสรายการ #${log.id} • บันทึกเมื่อ ${formatBangkokDateTime(log.created_at)} น.`
+            : 'เพิ่มข้อมูลบันทึกการทำงานโดย Super Admin';
+
+          editWorklogId.value = isEdit ? log.id : '';
+          editWorklogDatetime.value = isEdit
+            ? toBangkokDatetimeLocalValue(log.created_at)
+            : toBangkokDatetimeLocalValue(new Date().toISOString());
+          editWorklogHn.value = isEdit ? log.hn : '';
+
+          const existingTasks = new Set(isEdit ? (log.tasks || []) : []);
+          const taskNames = Array.from(
+            new Set([
+              ...(tasksRes.data || []).filter((t) => t.is_active || existingTasks.has(t.task_name)).map((t) => t.task_name),
+              ...(isEdit ? (log.tasks || []) : []),
+            ])
+          );
+
+          editWorklogTasksContainer.innerHTML = taskNames
+            .map((name, idx) => {
+              const checked = existingTasks.has(name) ? 'checked' : '';
+              return `
+                <label for="edit-wl-task-${idx}" class="flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:border-teal-400 select-none">
+                  <input
+                    type="checkbox"
+                    id="edit-wl-task-${idx}"
+                    name="edit_wl_task"
+                    value="${escapeHTML(name)}"
+                    ${checked}
+                    class="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 shrink-0"
+                  />
+                  <span class="text-xs font-medium text-slate-700 leading-snug">${escapeHTML(name)}</span>
+                </label>
+              `;
+            })
+            .join('');
+
+          const reqNames = Array.from(
+            new Set([
+              ...(reqRes.data || []).filter((r) => r.is_active || (isEdit && r.name === log.requester_name)).map((r) => r.name),
+              ...(isEdit && log.requester_name && log.requester_name !== '-' ? [log.requester_name] : []),
+            ])
+          );
+          editWorklogRequester.innerHTML =
+            `<option value="-">-- ไม่ระบุผู้แจ้ง (-) --</option>` +
+            reqNames.map((n) => `<option value="${escapeHTML(n)}">${escapeHTML(n)}</option>`).join('');
+          editWorklogRequester.value = isEdit ? (log.requester_name || '-') : '-';
+
+          const operators = allStaffList.filter((s) => s.is_operator || (isEdit && s.id === log.primary_staff_id));
+          editWorklogStaff.innerHTML = operators
+            .map(
+              (s) =>
+                `<option value="${s.id}">คุณ${escapeHTML(s.full_name)}${s.is_active ? '' : ' (ปิดใช้งาน)'}</option>`
+            )
+            .join('');
+          if (isEdit) {
+            editWorklogStaff.value = log.primary_staff_id;
+          } else if (operators.length > 0) {
+            editWorklogStaff.value = operators[0].id;
+          }
+
+          worklogEditorModal.classList.remove('hidden');
+          editWorklogHn.focus();
+        } catch (err) {
+          hideLoader();
+          console.error('Open worklog editor modal error:', err);
+          showToast('ไม่สามารถเปิดหน้าต่างจัดการข้อมูลได้', 'error');
+        }
+      }
+
+      async function handleSaveWorkLogEditor(e) {
+        e.preventDefault();
+        if (!isSuperAdmin()) return;
+
+        const logId = editWorklogId.value.trim();
+        const dtVal = editWorklogDatetime.value;
+        const newHn = editWorklogHn.value.trim();
+        const newTasks = Array.from(
+          editWorklogTasksContainer.querySelectorAll('input[name="edit_wl_task"]:checked')
+        ).map((cb) => cb.value);
+        const newRequester = editWorklogRequester.value || '-';
+        const newStaffId = editWorklogStaff.value;
+
+        if (!dtVal) {
+          showToast('กรุณาระบุวัน-เวลาที่บันทึก', 'error');
+          return;
+        }
+        if (!newHn) {
+          showToast('กรุณากรอกเลข HN ผู้ป่วย', 'error');
+          return;
+        }
+        if (newTasks.length === 0) {
+          showToast('กรุณาเลือกงานที่ทำอย่างน้อย 1 รายการ', 'error');
+          return;
+        }
+        if (!newStaffId) {
+          showToast('กรุณาเลือกผู้ปฏิบัติงาน', 'error');
+          return;
+        }
+
+        const createdAtIso = `${dtVal}:00+07:00`;
+
+        showLoader(logId ? 'กำลังบันทึกการแก้ไข...' : 'กำลังเพิ่มรายการบันทึก...');
+        try {
+          if (logId) {
+            const parsedId = /^\d+$/.test(String(logId)) ? Number(logId) : logId;
+            const { error } = await sb
+              .from('work_logs')
+              .update({
+                created_at: createdAtIso,
+                hn: newHn,
+                tasks: newTasks,
+                requester_name: newRequester,
+                primary_staff_id: newStaffId,
+                co_staff_ids: [],
+              })
+              .eq('id', parsedId);
+
+            if (error) throw error;
+            showToast('แก้ไขรายการบันทึกงานเรียบร้อยแล้ว', 'success');
+          } else {
+            const { error } = await sb.from('work_logs').insert({
+              created_at: createdAtIso,
+              hn: newHn,
+              tasks: newTasks,
+              requester_name: newRequester,
+              primary_staff_id: newStaffId,
+              co_staff_ids: [],
+            });
+
+            if (error) throw error;
+            showToast('เพิ่มรายการบันทึกงานเรียบร้อยแล้ว', 'success');
+          }
+
+          hideLoader();
+          worklogEditorModal.classList.add('hidden');
+
+          // อัปเดตช่วงวันที่ค้นหาให้ครอบคลุมวันที่ที่เพิ่ม/แก้ไข แล้วรีเฟรชตารางทันที
+          const targetDate = dtVal.slice(0, 10);
+          if (!adminFilterStartDate.value || targetDate < adminFilterStartDate.value) {
+            adminFilterStartDate.value = targetDate;
+          }
+          if (!adminFilterEndDate.value || targetDate > adminFilterEndDate.value) {
+            adminFilterEndDate.value = targetDate;
+          }
+          updateAdminShiftHint();
+          await handleAdminSearch();
+        } catch (err) {
+          hideLoader();
+          console.error('Save work_log error:', err);
+          showToast(`บันทึกข้อมูลไม่สำเร็จ: ${err.message || 'กรุณาตรวจสอบสิทธิ์ SQL'}`, 'error');
+        }
+      }
+
+      // ---------- Super Admin: Delete Work Log ----------
+      function promptDeleteWorkLog(log) {
+        if (!isSuperAdmin()) return;
+        openConfirmDeleteModal({
+          title: 'ยืนยันการลบรายการบันทึกงาน',
+          bodyHtml: `
+            <div>ต้องการลบรายการของ HN <span class="font-bold text-slate-900">${escapeHTML(log.hn)}</span></div>
+            <div class="text-xs text-slate-600 mt-1">
+              งาน: <span class="font-semibold">${escapeHTML((log.tasks || []).join(', '))}</span><br/>
+              ผู้ปฏิบัติงาน: <span class="font-semibold">คุณ${escapeHTML(getStaffName(log.primary_staff_id))}</span> (${escapeHTML(formatBangkokDateTime(log.created_at))} น.)
+            </div>
+            <div class="mt-2.5 text-xs font-bold text-rose-700">การลบนี้ไม่สามารถกู้คืนได้ คุณยืนยันหรือไม่?</div>
+          `,
+          onConfirm: async () => {
+            showLoader('กำลังลบรายการบันทึก...');
+            try {
+              const parsedId = /^\d+$/.test(String(log.id)) ? Number(log.id) : log.id;
+              const { error } = await sb.from('work_logs').delete().eq('id', parsedId);
+              hideLoader();
+              if (error) throw error;
+              showToast('ลบรายการบันทึกงานเรียบร้อยแล้ว', 'success');
+              await handleAdminSearch();
+            } catch (err) {
+              hideLoader();
+              console.error('Delete work_log error:', err);
+              showToast(`ลบข้อมูลไม่สำเร็จ: ${err.message || 'กรุณาตรวจสอบสิทธิ์ SQL'}`, 'error');
+            }
+          },
+        });
       }
 
       function exportAdminExcel() {
@@ -2254,7 +2699,7 @@
       }
 
       // =========================================================================
-      // 10. MODE 3: SUPER ADMIN MANAGEMENT
+      // 10. MODE 3: SUPER ADMIN MANAGEMENT (STAFF / REQUESTERS / TASKS)
       // =========================================================================
       async function loadSuperAdminTab(tabName) {
         saTabBtns.forEach((btn) => {
@@ -2281,6 +2726,7 @@
         }
       }
 
+      // ---------- 10.1 ผู้ใช้งาน (Staff / Admin) ----------
       async function renderSuperAdminStaffTable() {
         saStaffTbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-xs text-slate-400">กำลังโหลดรายชื่อผู้ใช้งาน...</td></tr>`;
         try {
@@ -2345,13 +2791,26 @@
                   <td class="py-3.5 px-4 whitespace-nowrap">${opBadge}</td>
                   <td class="py-3.5 px-4 whitespace-nowrap">${statusToggle}</td>
                   <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                    <button
-                      type="button"
-                      data-edit-staff-id="${s.id}"
-                      class="px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
-                    >
-                      แก้ไข
-                    </button>
+                    <div class="inline-flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        data-edit-staff-id="${s.id}"
+                        class="px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
+                      >
+                        แก้ไข
+                      </button>
+                      ${
+                        isSelf
+                          ? ''
+                          : `<button
+                              type="button"
+                              data-delete-staff-id="${s.id}"
+                              class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"
+                            >
+                              ลบ
+                            </button>`
+                      }
+                    </div>
                   </td>
                 </tr>
               `;
@@ -2378,6 +2837,38 @@
             btn.addEventListener('click', () => {
               const staff = allStaffMap[btn.dataset.editStaffId];
               if (staff) openStaffEditorModal(staff);
+            });
+          });
+
+          saStaffTbody.querySelectorAll('[data-delete-staff-id]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const staff = allStaffMap[btn.dataset.deleteStaffId];
+              if (!staff || staff.id === currentUser.id) return;
+              openConfirmDeleteModal({
+                title: 'ยืนยันการลบบัญชีผู้ใช้งาน',
+                bodyHtml: `
+                  <div>ต้องการลบบัญชีของ <span class="font-bold text-slate-900">คุณ${escapeHTML(staff.full_name)}</span> (รหัส <span class="font-mono font-bold">${escapeHTML(staff.access_code)}</span>) หรือไม่?</div>
+                  <div class="mt-2 text-xs text-slate-500">หมายเหตุ: หากผู้ใช้งานนี้มีประวัติการบันทึกงานอยู่ แนะนำให้ใช้การ "ปิดใช้งาน" แทนการลบถาวร</div>
+                `,
+                onConfirm: async () => {
+                  showLoader('กำลังลบบัญชีผู้ใช้งาน...');
+                  try {
+                    const { error } = await sb.from('staff').delete().eq('id', staff.id);
+                    hideLoader();
+                    if (error) throw error;
+                    showToast(`ลบบัญชี คุณ${staff.full_name} เรียบร้อยแล้ว`, 'success');
+                    await renderSuperAdminStaffTable();
+                  } catch (err) {
+                    hideLoader();
+                    console.error('Delete staff error:', err);
+                    if (err.code === '23503') {
+                      showToast('ไม่สามารถลบได้เนื่องจากมีประวัติบันทึกงานผูกอยู่ กรุณากด "ปิดใช้งาน" แทน', 'error');
+                    } else {
+                      showToast(`ลบผู้ใช้งานไม่สำเร็จ: ${err.message || ''}`, 'error');
+                    }
+                  }
+                },
+              });
             });
           });
         } catch (err) {
@@ -2495,6 +2986,7 @@
         }
       }
 
+      // ---------- 10.2 ผู้แจ้งให้ทำ (Requesters) ----------
       async function renderSuperAdminRequesters() {
         saRequestersList.innerHTML = `<div class="p-8 text-center text-xs text-slate-400">กำลังโหลดรายชื่อผู้แจ้ง...</div>`;
         try {
@@ -2510,24 +3002,54 @@
           saRequestersList.innerHTML = items
             .map(
               (r) => `
-              <div class="px-5 py-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/70 ${r.is_active ? '' : 'opacity-60'}">
+              <div class="px-5 py-3.5 flex flex-wrap items-center justify-between gap-3 hover:bg-slate-50/70 ${r.is_active ? '' : 'opacity-60'}">
                 <div class="font-medium text-sm text-slate-800">คุณ${escapeHTML(r.name)}</div>
-                <button
-                  type="button"
-                  data-req-id="${r.id}"
-                  data-req-next="${!r.is_active}"
-                  class="px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
-                    r.is_active
-                      ? 'bg-teal-50 text-teal-700 border-teal-200 hover:bg-teal-100'
-                      : 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
-                  }"
-                >
-                  ${r.is_active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
-                </button>
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    data-rename-req-id="${r.id}"
+                    data-rename-req-name="${escapeHTML(r.name)}"
+                    class="px-3 py-1 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
+                  >
+                    แก้ไขชื่อ
+                  </button>
+                  <button
+                    type="button"
+                    data-req-id="${r.id}"
+                    data-req-next="${!r.is_active}"
+                    class="px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+                      r.is_active
+                        ? 'bg-teal-50 text-teal-700 border-teal-200 hover:bg-teal-100'
+                        : 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
+                    }"
+                  >
+                    ${r.is_active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
+                  </button>
+                  <button
+                    type="button"
+                    data-delete-req-id="${r.id}"
+                    data-delete-req-name="${escapeHTML(r.name)}"
+                    class="px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"
+                  >
+                    ลบ
+                  </button>
+                </div>
               </div>
             `
             )
             .join('');
+
+          saRequestersList.querySelectorAll('[data-rename-req-id]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              renameTargetTable.value = 'requesters';
+              renameModalTitle.textContent = 'แก้ไขชื่อผู้แจ้งให้ทำ';
+              renameModalLabel.textContent = 'ชื่อผู้แจ้งให้ทำ';
+              renameTaskId.value = btn.dataset.renameReqId;
+              renameTaskInput.value = btn.dataset.renameReqName;
+              renameTaskModal.classList.remove('hidden');
+              renameTaskInput.focus();
+            });
+          });
 
           saRequestersList.querySelectorAll('[data-req-id]').forEach((btn) => {
             btn.addEventListener('click', async () => {
@@ -2544,6 +3066,30 @@
                 hideLoader();
                 showToast('อัปเดตสถานะไม่สำเร็จ', 'error');
               }
+            });
+          });
+
+          saRequestersList.querySelectorAll('[data-delete-req-id]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const id = Number(btn.dataset.deleteReqId);
+              const name = btn.dataset.deleteReqName;
+              openConfirmDeleteModal({
+                title: 'ยืนยันการลบรายชื่อผู้แจ้งให้ทำ',
+                bodyHtml: `ต้องการลบรายชื่อ <span class="font-bold text-slate-900">คุณ${escapeHTML(name)}</span> ออกจากระบบหรือไม่?`,
+                onConfirm: async () => {
+                  showLoader('กำลังลบรายชื่อผู้แจ้ง...');
+                  try {
+                    const { error } = await sb.from('requesters').delete().eq('id', id);
+                    hideLoader();
+                    if (error) throw error;
+                    showToast(`ลบรายชื่อ คุณ${name} เรียบร้อยแล้ว`, 'success');
+                    await renderSuperAdminRequesters();
+                  } catch (err) {
+                    hideLoader();
+                    showToast(`ลบรายชื่อไม่สำเร็จ: ${err.message || ''}`, 'error');
+                  }
+                },
+              });
             });
           });
         } catch (err) {
@@ -2574,6 +3120,7 @@
         }
       }
 
+      // ---------- 10.3 รายการงาน (Task Types) ----------
       async function renderSuperAdminTasks() {
         saTasksList.innerHTML = `<div class="p-8 text-center text-xs text-slate-400">กำลังโหลดรายการงาน...</div>`;
         try {
@@ -2612,6 +3159,14 @@
                   >
                     ${t.is_active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
                   </button>
+                  <button
+                    type="button"
+                    data-delete-task-id="${t.id}"
+                    data-delete-task-name="${escapeHTML(t.task_name)}"
+                    class="px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"
+                  >
+                    ลบ
+                  </button>
                 </div>
               </div>
             `
@@ -2620,6 +3175,9 @@
 
           saTasksList.querySelectorAll('[data-rename-task-id]').forEach((btn) => {
             btn.addEventListener('click', () => {
+              renameTargetTable.value = 'task_types';
+              renameModalTitle.textContent = 'แก้ไขชื่อรายการงาน';
+              renameModalLabel.textContent = 'ชื่อรายการงาน';
               renameTaskId.value = btn.dataset.renameTaskId;
               renameTaskInput.value = btn.dataset.renameTaskName;
               renameTaskModal.classList.remove('hidden');
@@ -2642,6 +3200,30 @@
                 hideLoader();
                 showToast('อัปเดตสถานะไม่สำเร็จ', 'error');
               }
+            });
+          });
+
+          saTasksList.querySelectorAll('[data-delete-task-id]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const id = Number(btn.dataset.deleteTaskId);
+              const name = btn.dataset.deleteTaskName;
+              openConfirmDeleteModal({
+                title: 'ยืนยันการลบรายการงาน',
+                bodyHtml: `ต้องการลบรายการงาน <span class="font-bold text-slate-900">"${escapeHTML(name)}"</span> ออกจากระบบหรือไม่?`,
+                onConfirm: async () => {
+                  showLoader('กำลังลบรายการงาน...');
+                  try {
+                    const { error } = await sb.from('task_types').delete().eq('id', id);
+                    hideLoader();
+                    if (error) throw error;
+                    showToast(`ลบรายการงาน "${name}" เรียบร้อยแล้ว`, 'success');
+                    await renderSuperAdminTasks();
+                  } catch (err) {
+                    hideLoader();
+                    showToast(`ลบรายการงานไม่สำเร็จ: ${err.message || ''}`, 'error');
+                  }
+                },
+              });
             });
           });
         } catch (err) {
@@ -2672,25 +3254,36 @@
         }
       }
 
-      async function handleRenameTask(e) {
+      async function handleRenameMaster(e) {
         e.preventDefault();
+        const table = renameTargetTable.value;
         const id = Number(renameTaskId.value);
         const newName = renameTaskInput.value.trim();
         if (!id || !newName) return;
+
         showLoader('กำลังบันทึกชื่อใหม่...');
         try {
-          const { error } = await sb.from('task_types').update({ task_name: newName }).eq('id', id);
-          hideLoader();
-          if (error) throw error;
-          renameTaskModal.classList.add('hidden');
-          showToast('แก้ไขชื่อรายการงานเรียบร้อยแล้ว', 'success');
-          await renderSuperAdminTasks();
+          if (table === 'requesters') {
+            const { error } = await sb.from('requesters').update({ name: newName }).eq('id', id);
+            hideLoader();
+            if (error) throw error;
+            renameTaskModal.classList.add('hidden');
+            showToast('แก้ไขชื่อผู้แจ้งให้ทำเรียบร้อยแล้ว', 'success');
+            await renderSuperAdminRequesters();
+          } else {
+            const { error } = await sb.from('task_types').update({ task_name: newName }).eq('id', id);
+            hideLoader();
+            if (error) throw error;
+            renameTaskModal.classList.add('hidden');
+            showToast('แก้ไขชื่อรายการงานเรียบร้อยแล้ว', 'success');
+            await renderSuperAdminTasks();
+          }
         } catch (err) {
           hideLoader();
           if (err.code === '23505') {
-            showToast(`มีรายการงานชื่อ "${newName}" อยู่แล้ว`, 'error');
+            showToast(`มีชื่อ "${newName}" อยู่ในระบบแล้ว`, 'error');
           } else {
-            showToast('แก้ไขชื่อรายการงานไม่สำเร็จ', 'error');
+            showToast('แก้ไขชื่อไม่สำเร็จ', 'error');
           }
         }
       }
@@ -2778,6 +3371,26 @@
         adminClearBtn.addEventListener('click', () => resetAdminDashboard(true));
         adminExportBtn.addEventListener('click', exportAdminExcel);
 
+        // Work Log Add/Edit Modal (Super Admin)
+        adminAddWorklogBtn.addEventListener('click', () => openWorkLogEditorModal(null));
+        worklogModalCloseX.addEventListener('click', () => worklogEditorModal.classList.add('hidden'));
+        worklogModalCancelBtn.addEventListener('click', () => worklogEditorModal.classList.add('hidden'));
+        worklogEditorForm.addEventListener('submit', handleSaveWorkLogEditor);
+
+        // Generic Confirm Delete Modal
+        confirmDeleteCancelBtn.addEventListener('click', () => {
+          confirmDeleteModal.classList.add('hidden');
+          pendingDeleteAction = null;
+        });
+        confirmDeleteOkBtn.addEventListener('click', async () => {
+          confirmDeleteModal.classList.add('hidden');
+          if (typeof pendingDeleteAction === 'function') {
+            const fn = pendingDeleteAction;
+            pendingDeleteAction = null;
+            await fn();
+          }
+        });
+
         // Super Admin Tabs & Forms
         saTabBtns.forEach((btn) => {
           btn.addEventListener('click', () => loadSuperAdminTab(btn.dataset.saTab));
@@ -2796,7 +3409,7 @@
         saAddRequesterForm.addEventListener('submit', handleAddRequester);
         saAddTaskForm.addEventListener('submit', handleAddTask);
         renameTaskCancelBtn.addEventListener('click', () => renameTaskModal.classList.add('hidden'));
-        renameTaskForm.addEventListener('submit', handleRenameTask);
+        renameTaskForm.addEventListener('submit', handleRenameMaster);
       }
 
       window.addEventListener('DOMContentLoaded', async () => {
